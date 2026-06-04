@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #fff8e7;
+  --soil: #4a3728;
+  --sage: #6b9b7a;
+  --sky: #7ec8e3;
+  --sun: #f4c542;
+  --wheat: #e8d4a8;
+  --barn: #c45c5c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-cream: var(--cream);
+  --color-soil: var(--soil);
+  --color-sage: var(--sage);
+  --color-sky: var(--sky);
+  --color-sun: var(--sun);
+  --color-wheat: var(--wheat);
+  --color-barn: var(--barn);
+  --font-display: var(--font-display), system-ui, sans-serif;
+  --font-hand: var(--font-hand), cursive;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgb(244 197 66 / 0.15), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgb(126 200 227 / 0.2), transparent 35%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e8d4a8' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  color: var(--soil);
+  font-family: var(--font-hand), cursive;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+.font-hand {
+  font-family: var(--font-hand), cursive;
+}
+
+.paper-card {
+  @apply rounded-3xl border-2 border-wheat bg-white/75 shadow-[4px_6px_0_0_rgba(74,55,40,0.12)] backdrop-blur-sm;
+}
+
+.briefing-card {
+  @apply rounded-2xl p-5 text-cream shadow-inner;
+  background: linear-gradient(145deg, #5a8f6e 0%, #4a7a5c 45%, #3d6b4f 100%);
+  border: 2px solid rgb(255 255 255 / 0.15);
+}
+
+.input-field {
+  @apply w-full rounded-xl border-2 border-wheat bg-white/90 px-3 py-2 text-soil text-sm outline-none transition-shadow;
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+.input-field:focus {
+  @apply border-sage ring-2 ring-sage/30;
+}
+
+.btn-primary {
+  @apply rounded-full px-5 py-2 text-sm font-semibold text-cream transition-transform active:scale-95;
+  font-family: var(--font-display), system-ui, sans-serif;
+  background: linear-gradient(180deg, #c45c5c, #a84848);
+  box-shadow: 2px 3px 0 #4a3728;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  @apply rounded-full px-4 py-2 text-sm font-semibold text-soil border-2 border-soil/20 bg-white/90 transition-transform active:scale-95 hover:bg-wheat/40;
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(18px);
+  }
+}
+
+@keyframes drift-reverse {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-14px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-drift {
+  animation: drift 14s ease-in-out infinite;
+}
+
+.animate-drift-reverse {
+  animation: drift-reverse 11s ease-in-out infinite;
+}
+
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  .paper-card {
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .briefing-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header.sticky {
+    display: none;
+  }
 }
