@@ -50,6 +50,34 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Health check (Render)
+
+Render (and other platforms) can use:
+
+```
+GET /health
+```
+
+- **200** — app is running and `WAI_API_KEY` is set  
+- **503** — app is running but `WAI_API_KEY` is missing (misconfigured deploy)
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "service": "shamba-sky",
+  "timestamp": "2026-06-04T12:00:00.000Z",
+  "checks": {
+    "api": "up",
+    "weatherAiKey": "configured",
+    "geminiKey": "optional"
+  }
+}
+```
+
+In Render: **Settings → Health Check Path** → `/health`
+
 ## Deploy (Vercel recommended)
 
 1. Push this repo to GitHub.
