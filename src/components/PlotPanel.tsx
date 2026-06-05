@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FarmField, FarmerAdvice, Lang, NormalizedWeather } from "@/lib/types";
 import { fetchWeatherForField } from "@/lib/fetch-weather";
 import { BriefingCard } from "./BriefingCard";
@@ -30,60 +30,17 @@ export function PlotPanel({
   const [loadingAdvice, setLoadingAdvice] = useState(false);
   const [focusDay, setFocusDay] = useState<string | undefined>(undefined);
 
-  const loadAdvice = useCallback(
-    async (brief: NormalizedWeather) => {
-      setLoadingAdvice(true);
-      setAdviceError(null);
-      try {
-        const res = await fetch("/api/farmer-advice", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fieldName: field.name,
-            crop: field.crop,
-            lang,
-            current: brief.current,
-            daily: brief.daily,
-            aiSummary: brief.aiSummary,
-            targetDay: focusDay ?? selectedDay,
-          }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          console.log("data", data);
-          setAdvice({
-            headline: data.headline,
-            tips: data.tips,
-            source: "gemini",
-          });
-        } else {
-          setAdvice(null);
-          setAdviceError(
-            (data as { error?: string }).error ??
-              (lang === "sw" ? "Vidokezo vimeshindwa." : "Could not load tips.")
-          );
-        }
-      } catch {
-        setAdvice(null);
-        setAdviceError(
-          lang === "sw" ? "Hitilafu ya mtandao." : "Network error loading tips."
-        );
-      } finally {
-        setLoadingAdvice(false);
-      }
-    },
-    [field.name, field.crop, lang, selectedDay, focusDay]
-  );
-
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadWeather() {
       setError(null);
       setLoadingBrief(true);
       setLoadingCharts(true);
       setBriefing(null);
       setCharts(null);
+      setAdvice(null);
+      setAdviceError(null);
 
       try {
         const [withAi, withoutAi] = await Promise.all([
@@ -110,16 +67,96 @@ export function PlotPanel({
       }
     }
 
-    void load();
+    void loadWeather();
     return () => {
       cancelled = true;
     };
   }, [field.lat, field.lon, field.id, lang, refreshKey]);
 
   useEffect(() => {
-    if (!briefing) return;
-    void loadAdvice(briefing);
-  }, [focusDay, briefing, loadAdvice]);
+    if (loadingBrief) return;
+
+    const abort = new AbortController();
+    let cancelled = false;
+
+    const current = briefing?.current ?? {
+      temp: 0,
+      condition: lang === "sw" ? "Haipatikani" : "Unavailable",
+    };
+    const daily =
+      briefing?.daily?.length ?
+        briefing.daily
+      : [
+          {
+            date: "today",
+            label: lang === "sw" ? "Leo" : "Today",
+            tempMax: 0,
+            tempMin: 0,
+            condition: lang === "sw" ? "Hakuna data" : "No forecast",
+          },
+        ];
+
+    async function loadAdvice() {
+      setLoadingAdvice(true);
+      setAdviceError(null);
+
+      try {
+        const res = await fetch("/api/farmer-advice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: abort.signal,
+          body: JSON.stringify({
+            fieldName: field.name,
+            crop: field.crop,
+            lang,
+            current,
+            daily,
+            aiSummary: briefing?.aiSummary,
+            targetDay: focusDay ?? selectedDay,
+          }),
+        });
+
+        if (cancelled) return;
+
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.tips) && data.tips.length > 0) {
+          setAdvice({
+            headline: data.headline ?? field.name,
+            tips: data.tips,
+            source: "gemini",
+          });
+        } else {
+          setAdvice(null);
+          setAdviceError(
+            (data as { error?: string }).error ??
+              (lang === "sw" ? "Vidokezo vimeshindwa." : "Could not load tips.")
+          );
+        }
+      } catch (e) {
+        if (cancelled || (e instanceof Error && e.name === "AbortError")) return;
+        setAdvice(null);
+        setAdviceError(
+          lang === "sw" ? "Hitilafu ya mtandao." : "Network error loading tips."
+        );
+      } finally {
+        if (!cancelled) setLoadingAdvice(false);
+      }
+    }
+
+    void loadAdvice();
+    return () => {
+      cancelled = true;
+      abort.abort();
+    };
+  }, [
+    loadingBrief,
+    briefing,
+    focusDay,
+    selectedDay,
+    field.name,
+    field.crop,
+    lang,
+  ]);
 
   return (
     <article
@@ -191,6 +228,7 @@ export function PlotPanel({
       <FarmerTips
         advice={advice}
         loading={loadingAdvice}
+        waitingForWeather={loadingBrief}
         error={adviceError}
         lang={lang}
       />
