@@ -22,6 +22,21 @@ GEMINI_API_KEY=your_gemini_key   # optional
 
 Next.js may hot-reload `.env.local`, but a full restart is safest.
 
+## Gemini (farmer tips)
+
+Uses the [Gemini API](https://ai.google.dev/gemini-api/docs) with `x-goog-api-key` header (not query-string `?key=`).
+
+```env
+GEMINI_API_KEY=your_key_from_aistudio.google.com
+GEMINI_MODEL=gemini-2.5-flash   # recommended; avoid gemini-2.0-flash (often 429 on free tier)
+```
+
+Test from project root:
+
+```bash
+npm run test:gemini
+```
+
 ## Verify
 
 Open in browser:

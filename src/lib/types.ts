@@ -41,5 +41,5 @@ export interface NormalizedWeather {
 export interface FarmerAdvice {
   tips: string[];
   headline: string;
-  source: "gemini" | "weather-ai" | "fallback";
+  source: "gemini";
 }

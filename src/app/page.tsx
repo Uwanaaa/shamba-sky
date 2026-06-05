@@ -5,6 +5,7 @@ import { SkyDecor } from "@/components/SkyDecor";
 import { FieldEditor } from "@/components/FieldEditor";
 import { PlotPanel } from "@/components/PlotPanel";
 import { PrintSummary } from "@/components/PrintSummary";
+import { WebhookAlerts } from "@/components/WebhookAlerts";
 import { loadFields, saveFields } from "@/lib/fields-storage";
 import type { FarmField, Lang } from "@/lib/types";
 
@@ -116,6 +117,8 @@ export default function Home() {
         <div className="print:hidden">
           <FieldEditor fields={fields} onChange={setFields} />
         </div>
+
+        <WebhookAlerts lang={lang} />
 
         <section
           className={`grid gap-6 print:grid-cols-1 ${

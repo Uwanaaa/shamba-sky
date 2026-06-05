@@ -23,6 +23,7 @@ export function PlotPanel({
   const [briefing, setBriefing] = useState<NormalizedWeather | null>(null);
   const [charts, setCharts] = useState<NormalizedWeather | null>(null);
   const [advice, setAdvice] = useState<FarmerAdvice | null>(null);
+  const [adviceError, setAdviceError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingBrief, setLoadingBrief] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
@@ -32,6 +33,7 @@ export function PlotPanel({
   const loadAdvice = useCallback(
     async (brief: NormalizedWeather) => {
       setLoadingAdvice(true);
+      setAdviceError(null);
       try {
         const res = await fetch("/api/farmer-advice", {
           method: "POST",
@@ -48,14 +50,24 @@ export function PlotPanel({
         });
         const data = await res.json();
         if (res.ok) {
+          console.log("data", data);
           setAdvice({
             headline: data.headline,
             tips: data.tips,
-            source: data.source,
+            source: "gemini",
           });
+        } else {
+          setAdvice(null);
+          setAdviceError(
+            (data as { error?: string }).error ??
+              (lang === "sw" ? "Vidokezo vimeshindwa." : "Could not load tips.")
+          );
         }
       } catch {
-        /* optional */
+        setAdvice(null);
+        setAdviceError(
+          lang === "sw" ? "Hitilafu ya mtandao." : "Network error loading tips."
+        );
       } finally {
         setLoadingAdvice(false);
       }
@@ -176,7 +188,12 @@ export function PlotPanel({
         )}
       </div>
 
-      <FarmerTips advice={advice} loading={loadingAdvice} lang={lang} />
+      <FarmerTips
+        advice={advice}
+        loading={loadingAdvice}
+        error={adviceError}
+        lang={lang}
+      />
     </article>
   );
 }
